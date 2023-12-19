@@ -1,16 +1,10 @@
-// import { AutoTokenizer, BertTokenizer } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0'
-// import * as sw from 'remove-stopwords'
 import stopwords from './model/stopwords/stopwords.js'
 
-// let speechText
-// let predictOutput
-// let theButton
-// let vocab
-// let tokenizer
-// let model
-
+// define path of model and vocabs
 const modelPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/model/model_json/model.json'
-const vocabPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/model/tokenizer/tokenizer_dict.json'        
+const vocabPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/model/tokenizer/tokenizer_dict.json'
+const indobertVocabPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/model/tokenizer/indobert_dict.json' 
+
 
 const loadModel = async() => {
     return await tf.loadLayersModel(modelPath)
@@ -23,7 +17,9 @@ const removeStopwords = (tokens, stopwords) => {
 }
 
 const preprocessText = (text) => {
+    // lowercase input
     text = text.toLowerCase()
+    // remove urls
     text = text.replace(/(?:https?|ftp):\/\/[\n\S]+/g,  '')
     // remove punctuations
     text = text.replace(/[^\w\s]|_/g,'')
@@ -43,14 +39,14 @@ const loadTokenizer = async() => {
     return tokenizersData
 }
 
-// const loadBertTokenizer = async() => {
-//     const bertTokenizer = await BertTokenizer.from_pretrained('indobenchmark/indobert-lite-base-p1')
-//     return bertTokenizer
-// }
+const loadIndobertTokenizer = async() => {
+    const indobertTokenizer = await fetch(indobertVocabPath)
+    const indobertTokenizerData = await indobertTokenizer.json()
+    return indobertTokenizerData
+}
 
-const tokenize = async (input) => {
+const tokenize = async (text) => {
     const tokenizer = await loadTokenizer()
-    const text = await preprocessText(input)
     const split_text = text.split(' ');
     const tokens = [];
     split_text.forEach(element => {
@@ -63,23 +59,69 @@ const tokenize = async (input) => {
     while (paddedToken.length < 200) {
         paddedToken.push(0);
     }
-    
     return paddedToken
 }
 
-// const testStr = 'Sementara itu, di Arab Saudi Salju turun untuk pertama kali dalam 100 tahun . Penjelasan:Akun Twitter @Strawberygirli mengunggah video yang memperlihatkan dua ekor unta di gurun yang tengah ditutupi salju. Pengguna Twitter tersebut juga menulis klaim bahwa video yang diunggah pada 25 Februari 2023 tersebut terjadi di Arab Saudi dan merupakan fenomena salju yang turun pertama kali dalam 100 tahun terakhir. Setelah dilakukan penelusuran dengan Yandex Video Search, video tersebut telah banyak beredar sejak 2021, salah satunya diunggah oleh pengguna YouTube bernama pada 19 Februari 2021. Pengguna YouTube tersebut mengunggah video serupa dengan judul Wonder of nature in the desert 2021! Snowfall in Saudi Arabia Testament and predictions of Isaiah . Selain itu, dilansir dari laman berita Mirror, turunnya salju pertama kali dalam 100 tahun di Arab Saudi terjadi pada Desember 2013. Artikel berita tersebut berjudul Video: Watch Saudi Arabian man s hilarious snow fail as he jumps into country s first snow in 100 years . Dengan demikian, informasi yang disebarluaskan oleh @Strawberygirli merupakan konten yang menyesatkan. Referensi:https://www.youtube.com/watch?v de5jM9-7raM https://www.mirror.co.uk/news/weird-news/saudi-arabia-snow-video-watch-2932938'
-// const cleaned = preprocessText(testStr)
-// console.log('kal');
-// // console.log(tokenizer);
-// console.log(preprocessText(testStr));
-// console.log(tokenize(cleaned));
+const indobertTokenize = async (text) => {
+    const tokenizer = await loadIndobertTokenizer()
+    const splitText = text.split(' ');
+    // add special tokens
+    splitText.unshift('[CLS]')
+    splitText.push('[SEP]')
+
+    const tokens = [];
+    splitText.forEach(element => {
+        if (tokenizer[element] != undefined) {
+            tokens.push(tokenizer[element]);
+        }
+    });
+    //get padded token and attention mask
+    const paddedToken = tokens;
+    while (paddedToken.length < 200) {
+        paddedToken.push(0);
+    }
+    const attentionMask = []
+    paddedToken.forEach(tokenId => {
+        tokenId === 0 ? attentionMask.push(0) : attentionMask.push(1)
+    })
+    return {'tokenId': paddedToken, 'attentionMask': attentionMask }
+}
 
 
-// const tokenizeBert = async(input) => {
-//     const bertTokenizer = await loadBertTokenizer()
-//     const text = await preprocessText(input)
-//     const { tokenId } = await bertTokenizer(text)
-// }  
+const testStr = 'Sementara itu, di Arab Saudi Salju turun untuk pertama kali dalam 100 tahun . Penjelasan:Akun Twitter @Strawberygirli mengunggah video yang memperlihatkan dua ekor unta di gurun yang tengah ditutupi salju. Pengguna Twitter tersebut juga menulis klaim bahwa video yang diunggah pada 25 Februari 2023 tersebut terjadi di Arab Saudi dan merupakan fenomena salju yang turun pertama kali dalam 100 tahun terakhir. Setelah dilakukan penelusuran dengan Yandex Video Search, video tersebut telah banyak beredar sejak 2021, salah satunya diunggah oleh pengguna YouTube bernama pada 19 Februari 2021. Pengguna YouTube tersebut mengunggah video serupa dengan judul Wonder of nature in the desert 2021! Snowfall in Saudi Arabia Testament and predictions of Isaiah . Selain itu, dilansir dari laman berita Mirror, turunnya salju pertama kali dalam 100 tahun di Arab Saudi terjadi pada Desember 2013. Artikel berita tersebut berjudul Video: Watch Saudi Arabian man s hilarious snow fail as he jumps into country s first snow in 100 years . Dengan demikian, informasi yang disebarluaskan oleh @Strawberygirli merupakan konten yang menyesatkan. Referensi:https://www.youtube.com/watch?v de5jM9-7raM https://www.mirror.co.uk/news/weird-news/saudi-arabia-snow-video-watch-2932938'
+const cleaned = preprocessText(testStr)
+console.log('kal');
+// console.log(tokenizer);
+console.log(preprocessText(testStr));
+console.log(tokenize(cleaned));
+console.log(indobertTokenize(cleaned));
+console.log(loadModel());
+
+const predictHoax = async () => {
+    const modell = await loadModel()
+    // console.log(modell);
+    // modell ? console.log('yes') : console.log('no') 
+    const token = await tokenize(cleaned)
+    const indobertToken = await indobertTokenize(cleaned)
+    const prob = modell.predict({'inputIds': indobertToken.tokenId, 'inputMask': indobertToken.attentionMask, 'inputText': token}).data()
+    // const prob = tf.tidy(() => {
+    //     speechText = document.getElementById('userInput').value;        
+    //     var x = tokenize(speechText)
+    //     x = model.predict(tf.tensor2d(x, [x.length, 100]));
+    //     x = tf.mean(x);
+    //     x = x.arraySync();
+    //     return x
+    // })
+    // console.log(prob);
+    // if (prob < 0.5) {
+    //     return `<p style="color:rgb(255,100,100); font-size:150%;">We predict this is by a member of the <b>LABOUR</b> party, with probability ${(100 - prob*100).toFixed(0)}%</p>`;
+    // } else {
+    //     return `<p style="color:rgb(100,100,255); font-size:150%;">We predict this is by a member of the <b>CONSERVATIVE</b> party, with probability ${(prob*100).toFixed(0)}%</p>`;
+    // }    
+    return prob
+}
+
+console.log(predictHoax())
 
     // const predicting = async (input) => {
     //     const model = await loadModel()
