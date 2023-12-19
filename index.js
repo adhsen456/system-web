@@ -1,3 +1,5 @@
+// import * as transformers from './client/@xenova/transformers'
+import * as transformers from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.12.0'
 import stopwords from './model/stopwords/stopwords.js'
 
 // define path of model and vocabs
@@ -5,9 +7,9 @@ const modelPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/m
 const vocabPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/model/tokenizer/tokenizer_dict.json'
 const indobertVocabPath = 'https://raw.githubusercontent.com/adhsen456/system-web/main/model/tokenizer/indobert_dict.json' 
 
-
+console.log(transformers.AlbertModel);
 const loadModel = async() => {
-    tf.serialization.registerClass(transformers.TFAlbertModel())
+    tf.serialization.registerClass(transformers.AlbertModel, null, 'TFAlbertModel')
     return await tf.loadLayersModel(modelPath)
 }
 
