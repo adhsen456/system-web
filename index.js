@@ -7,6 +7,7 @@ const indobertVocabPath = 'https://raw.githubusercontent.com/adhsen456/system-we
 
 
 const loadModel = async() => {
+    tf.serialization.registerClass(transformers.TFAlbertModel())
     return await tf.loadLayersModel(modelPath)
 }
 
