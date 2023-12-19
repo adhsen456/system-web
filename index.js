@@ -1,4 +1,4 @@
-// import { AutoTokenizer, BertTokenizer } from './node_modules/@xenova/transformers'
+// import { AutoTokenizer, BertTokenizer } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0'
 // import * as sw from 'remove-stopwords'
 import stopwords from './model/stopwords/stopwords.js'
 
@@ -79,7 +79,6 @@ const tokenize = async (input) => {
 //     const bertTokenizer = await loadBertTokenizer()
 //     const text = await preprocessText(input)
 //     const { tokenId } = await bertTokenizer(text)
-    
 // }  
 
     // const predicting = async (input) => {
@@ -170,7 +169,8 @@ const tokenize = async (input) => {
     
         // theButton.innerHTML = `Loading...`;
     
-        console.log(loadTokenizer());
+        loadTokenizer();
+        // console.log(loadBertTokenizer());
     
         // theButton.innerHTML = `Loading......`;
     
